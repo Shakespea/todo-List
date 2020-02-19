@@ -4,8 +4,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose= require("mongoose");
 const _ = require("lodash");
-//mongoose.connect('mongodb://localhost/todolistDB', {useNewUrlParser: true});
-mongoose.connect("mongodb+srv://admin-hammed:Testing123@cluster0-a0tew.mongodb.net/todolistDB" , {useNewUrlParser: true, useUnifiedTopology: true  }); // connect to mongodb server
+mongoose.connect('mongodb://localhost/todolistDB', {useNewUrlParser: true ,  useUnifiedTopology: true});
 mongoose.set('useFindAndModify', false);
 const app = express();
 app.set('view engine', 'ejs');
@@ -100,7 +99,6 @@ app.post("/delete", function(req , res){
     }
     });
   }
-
 
   //res.redirect("/");
 });
