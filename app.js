@@ -9,7 +9,6 @@ mongoose.connect("mongodb+srv://admin-hammed:Testing123@cluster0-a0tew.mongodb.n
 mongoose.set('useFindAndModify', false);
 const app = express();
 app.set('view engine', 'ejs');
-
 app.use(bodyParser.urlencoded({
   extended: true
 }));
