@@ -13,7 +13,13 @@ font-family: 'Open Sans', sans-serif;
 .nav-link:hover {
     color: grey;
 }
+.foot {
+  background-color:#f65c78;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  color: white;
 
+}
 
 h1 {
   color: #fff;
