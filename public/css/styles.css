@@ -1,3 +1,22 @@
+ body , html{
+  position: relative;
+  height: 100%;
+}
+
+/* for the 2 buttons on the home page */
+.btn{
+  margin-top: 20px;
+  background-color: #f65c78;
+  border-color: grey;
+  font-size: 20px;
+  text-align: center;
+}
+.butt{
+  margin-left: 650px;
+}
+.btn:hover{
+  background-color: #f65c78;
+}
 /* Top nav */
 .nav-link {
 color: white;
@@ -41,6 +60,28 @@ h1 {
 #heading {
   background-color: #f65c78;
   text-align: center;
+}
+.sign-form{
+  margin-top: 80px;
+}
+/* To remove ouline or border highlight */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
+}
+/* jumbotron for home page */
+.jumbotron{
+  background-color: #f65c78;
+  /* color: #fff; */
+  text-align: center;
+  margin-top: 80px;
+  width: 600px;
+  margin-left: 450px;
+  border-color: transparent;
+  border-radius: 40px;
+  /* border: solid #F1F1F1; */
 }
 
 .item {
@@ -99,7 +140,7 @@ input[type="text"] {
   width: 313px;
 }
 
-input[type="text"]:focus {
+/* input[type="text"]:focus {
   outline: none;
   box-shadow: inset 0 -3px 0 0 #A683E3;
 }
@@ -107,10 +148,45 @@ input[type="text"]:focus {
 ::placeholder {
   color: grey;
   opacity: 1;
-}
+} */
+
 
 footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
   color: white;
   color: rgba(0, 0, 0, 0.5);
   text-align: center;
+}
+
+/* for sign/signup page */
+.form-signin {
+  width: 100%;
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin .checkbox {
+  font-weight: 400;
+}
+.form-signin .form-control {
+  position: relative;
+  box-sizing: border-box;
+  height: auto;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
