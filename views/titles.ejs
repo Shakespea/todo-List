@@ -1,0 +1,23 @@
+<%- include("header") -%>
+
+<% listTitle.forEach(function(index){ %>
+
+<div class="box" id="heading">
+  <h1> <%= index.title %> <h1>
+</div>
+
+<% })%>
+
+
+
+
+<div class="box">
+  <form class="item" action="/todoTitle" method="post">
+    <input type="text" name="newTitle" placeholder="create new todolist title" autocomplete="off">
+    <button type="submit" name="list" value = "<%=listTitle %>">+</button>
+  </form>
+</div>
+
+
+
+<%- include("footer") -%>

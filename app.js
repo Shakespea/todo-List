@@ -1,167 +1,190 @@
 //jshint esversion:6
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const _ = require("lodash");
-mongoose.connect('mongodb://localhost/todolistDB', {useNewUrlParser: true, useUnifiedTopology: true});
-// mongoose.connect("mongodb+srv://admin-hammed:Testing123@cluster0-a0tew.mongodb.net/todolistDB" , {useNewUrlParser: true, useUnifiedTopology: true  }); // connect to mongodb server
-mongoose.set('useFindAndModify', false);
+const session = require("express-session");
+const passport = require("passport");
+const passportLocalMongoose = require("passport-local-mongoose");
+
+
 const app = express();
 app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
+app.use(bodyParser.json());
+//app.use(express.json());
 
-const itemsSchema = new mongoose.Schema({     //Scheam --> data prototype
-  todo: String                            //name: String
+app.use(session({                          // Configures session which is an instance to express-session
+  secret: "This is Our little secret",     // make this a environment variable i.e. dotenv
+  resave: false,
+  saveUninitialized: false,
+}));
+app.use(passport.initialize());            // Configures passport which is an instance to passport. initialize method is a strategy (auth mech) for passport
+app.use(passport.session());               // get passport and modify its session to above e.g {secret: "",  ....}
+
+//mongoose connection below the passport configuration
+mongoose.set('useFindAndModify', false);
+mongoose.connect('mongodb://localhost/todolistDB', {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true});
+// mongoose.connect("mongodb+srv://admin-hammed:Testing123@cluster0-a0tew.mongodb.net/todolistDB" , {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true  }); // connect to mongodb server
+const itemsSchema = new mongoose.Schema({title: String, list: String });
+const Item = mongoose.model("Item", itemsSchema);        //might need it                                                                 // follow the prototype. Note: Item is the model so whenever we want to
+// const item1 = new Item({ list: "Welcome to your todolist" });
+// const item2 = new Item({ list: "Hit the + button to add a new Item" });
+// const item3 = new Item({ list: "[]<-- Hit this button to delete an item"    });
+// const defaultItems = [item1, item2, item3];
+
+const userSchema = new mongoose.Schema( {
+  // username: String,   // no need as the passport register() method can be created via username in-built variable
+  password: String,
+  title: String,                 // change name of User schema to title everywhere
+  todos: [itemsSchema]                                                                                                    //items: [itemsSchema]
 });
 
-const Item = mongoose.model("Item", itemsSchema); // follow the prototype. Note: Item is the model so whenever we want to
-const item1 = new Item({ // make any changes to the database, we have to make reference to ex List.change()
-  todo: "Welcome to your todolist"                // name: "Welcome to your todolist"
+userSchema.plugin(passportLocalMongoose);       // configures instance passportLocalMongoose becomes one of the userSchema inbult mongoose functions
+
+const User = new mongoose.model("User", userSchema);                                                           // for our dynamic route parameter
+
+passport.use(User.createStrategy());
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+var email;  //global variable for email
+var userTitle; //global variable for new tittle in todoPage
+const date = new Date();
+const month = date.getMonth() + 1;
+const day = date.getDate();
+const year = date.getFullYear();
+var firstDay = month + "/" + day + "/" + year;     // not const but var  to make it changeable for a new date update
+
+
+app.get("/workInProgress", function(req , res){
+  res.send("<h1>Work In Progress for the users' title list feature. Thank you for your patience!</h1>");
 });
-
-const item2 = new Item({
-  todo: "Hit the + button to add a new Item"         //name: "Hit the + button to add a new Item"
-});
-
-const item3 = new Item({
-todo: "<-- Hit this button to delete an item"          //name: "<-- Hit this button to delete an item"
-});
-const defaultItems = [item1, item2, item3];
-
-const listSchema = new mongoose.Schema( {   // schema of our object version for our dynamic route parameter
-  name: String,
-  todos: [itemsSchema]                                           //items: [itemsSchema]
-});
-const List = mongoose.model("List", listSchema); // for our dynamic route parameter
-
-
-
-app.get("/todoPage", function(req, res) {
-
-  Item.find({}, function(err, foundItem) {
-
-    if (foundItem.length === 0) { // checking if the document is empty
-
-      Item.insertMany(defaultItems, function(err) { // The default item in this case can be the user items
-        if (err) {
-          console.log(err);
-        } else {
-
-          console.log("Successfully saved the default items");
-        }
-      });
-      res.redirect("/todoPage");
-    } else {
-      console.log(foundItem);   // testing
-      res.render("list", {
-        listTitle: "Today",
-        newListItems: foundItem
-      }); //foundItem is an Array type due to defaultItems being an Array
-    }
-
-  });
-
-});
-
-app.post("/todoPage", function(req, res) {
-  const itemName = req.body.newItem;
-  const listName = req.body.list;
-
-  const item = new Item({
-    todo: itemName                        //name: itemName
-  });
-
-  if (listName === "Today") {
-    item.save();
-    res.redirect("/todoPage");
-  } else {
-    List.findOne({
-      name: listName
-    }, function(err, foundList) {
-      foundList.todos.push(item);          // change from items to todos
-      foundList.save();
-      res.redirect("/todoPage");   // + listName);
-    });
-  }
-
-});
-
-app.post("/delete", function(req, res) {
-  const checkedItemId = req.body.deleteItem;
-  const listName = req.body.listName;
-
-  if (listName === "Today") {
-    Item.findByIdAndRemove({
-      _id: checkedItemId
-    }, function(err) {
-      if (!err) {
-        console.log("Sucessfully deleted checked item");
-      }
-    });
-    res.redirect("/todoPage");
-  } else {
-    List.findOneAndUpdate({
-      name: listName
-    }, {
-      $pull: {
-        items: {
-          _id: checkedItemId
-        }
-      }
-    }, function(err, found) {
-      if (!err) {
-        res.redirect("/todoPage");         //+ listName);  // this for params route
-      }
-    });
-  }
-
-  //res.redirect("/");
-});
-
-app.get("/:pageName", function(req, res) {
-  const pageEntry = _.capitalize(req.params.pageName); // using lodash to capitalize the the first letter of pageEntry
-  List.findOne({
-    name: pageEntry
-  }, function(err, foundList) { // it finds one data in particular that meet the condition
-    // of the first argument and stores in callback 2nd param
-    if (!err) {
-      if (!foundList) { // foundList which is 2nd argument compare user's pageName entry with the one in the database
-        //console.log(foundList.name);
-        const list = new List({
-          name: pageEntry, //req.params.pageName,
-          todos: defaultItems
-        });
-        //  List.deleteMany({} , function(err , foundList){   });
-        list.save();
-        res.redirect("/" + pageEntry);
-      } else {
-
-        //console.log("Does exist");
-        res.render("list", {
-          listTitle: foundList.name,
-          newListItems: foundList.todos
-        });
-      }
-    }
-  });
-
-});
-
 
 app.get("/", function(req, res) {
   res.render("about");
 });
 
-app.get("/signin", function(req , res){
-  res.render("signin");
-});
 app.get("/signup", function(req , res){
   res.render("signup");
 });
+
+app.post("/signup" , function(req , res){
+  User.register({username: req.body.username }, req.body.password, function(err , user){
+    if(err){
+      console.log("Found err: " + err);
+    }else{
+      // console.log(req.isAuthenticated());   // testing
+      // passport.authenticate('local');  // not doing anything
+      res.redirect("/signin");     // you want to redirect to success or failure login page or just redirect to user's password entry.
+    }
+   });
+
+});
+
+app.get("/signin", function(req , res){
+  res.render("signin");
+});
+
+app.post("/signin" , passport.authenticate('local' , {failureRedirect: "/signin"}),  function(req , res){      // read a bit more about:  passport.authenticate("local")
+  email = req.body.username;   // stored in the global name called email                                                   //testing
+
+//we can check whether todos array of user schema's length == 1 (i.e.) .todos.length ===1 if so navigate to where the user can enter their own title page
+  if(req.isAuthenticated()){
+    res.redirect("/todoPage");       //change to "/titles" based on the note *****
+  }else{
+    res.redirect("/signin");
+  }
+});
+
+
+app.get("/todoPage", function(req, res) {
+  if(req.isAuthenticated()){
+    User.findOne({username: email}, function(err, user) {
+
+        res.render("list", {   //listTitle shouldn't be rendered immediately until a corresponding title button is pressed
+          listTitle: firstDay,            //replace it with a global variable called userTitle OR firstDay can be updated
+          newListItems: user.todos
+        });
+
+    });
+  }else{
+    res.redirect("/");
+  }
+
+});
+
+
+app.post("/todoTitle", function(req, res) {
+  userNewTitle = req.body.newTitle;
+ //firstDay = req.body.newList;
+  User.findOne({ username: email  }, function(err, user) {
+        //firstDay = req.body.newTitle;  //no need for a new date update for now until titles page is activated
+        res.redirect("/todoPage");
+
+    //consider below to avoid immediate title rendering
+    //*** now you check for username if found then check for title if found use the n = new Item({ }). And if not found
+  });
+
+});
+
+//titles get request
+app.get("/titles" , function(req , res){
+  if(req.isAuthenticated() ){
+    User.findOne({username: email }, function(err , user){
+      res.render("titles" , {listTitle: user.todos});
+    });
+
+  }else{
+    // document.getElementById("   ").innerHTML = "You nentered wrong Username or Password!";
+    // document.getElementById("  ").css({color: "red"});
+    res.redirect("/signin");
+  }
+});
+
+//aim now is to check if it's a new title provided that a new title page is created
+app.post("/todoPage", function(req, res) {
+  const listTitle = req.body.list;      // list from list.ejs form post html form
+  const newList = req.body.newList;     // newList from list.ejs delele html form
+//make sure you check if the user is authenticated by using req.isAuthenticated()
+    User.findOne({ username: email  }, function(err, user) {
+      if(err){
+        console.log(err);
+      }else{
+            item = new Item({title: listTitle, list: newList});    // if user title changes   (**)
+            user.todos.push(item);
+            user.save();
+      }
+      res.redirect("/todoPage");          //+ listTitle);
+    });
+
+});
+
+
+app.post("/delete", function(req, res) {
+  const checkedItemId = req.body.deleteItem;
+  const listTitle = req.body.listTitle;
+  const todo = req.body.todo;
+  const d = "3/11/2020";
+
+
+User.findOneAndUpdate({ username: email  }, {  $pull: { todos: { _id: checkedItemId }  }  },  function(err, found) {
+  if (!err) {
+    //console.log(found);
+    res.redirect("/todoPage");                         //+ listTitle);  // this for params route
+  }
+});
+
+ });
+
+ app.get('/signout', function(req, res){
+   if(req.isAuthenticated()){
+     req.logout();
+     res.redirect('/');
+   }
+
+ });
 
 
 
