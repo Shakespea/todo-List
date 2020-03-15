@@ -12,7 +12,7 @@
   text-align: center;
 }
 .butt{
-  margin-left: 650px;
+  margin-left: 660px;
 }
 .btn:hover{
   background-color: #f65c78;
@@ -206,4 +206,26 @@ footer {
 }
 .btn-block{
   color: #fff;
+}
+
+
+/* About page media page for centering */
+.aboutBody{
+  position: relative;
+  text-align: center;
+}
+@media screen and (max-width: 800px) {
+.aboutQuery {
+    height: 400px;
+    margin: auto;
+  }
+.butt{
+  padding-left: 200px;
+}
+  @media screen and (max-width: 700px){
+    .butt{
+      padding-left: 205px;
+    }
+  }
+
 }
