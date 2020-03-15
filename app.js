@@ -84,7 +84,11 @@ app.post("/signup" , function(req , res){
 });
 
 app.get("/signin", function(req , res){
-  res.render("signin");
+  if(req.isAuthenticated()){
+    res.redirect("/todoPage");
+  }else{
+    res.render("signin");
+  }
 });
 
 app.post("/signin" , passport.authenticate('local' , {failureRedirect: "/signin"}),  function(req , res){      // read a bit more about:  passport.authenticate("local")
