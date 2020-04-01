@@ -25,8 +25,8 @@ app.use(passport.session());               // get passport and modify its sessio
 
 //mongoose connection below the passport configuration
 mongoose.set('useFindAndModify', false);
-//mongoose.connect('mongodb://localhost/todolistDB', {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true});
-mongoose.connect("mongodb+srv://admin-hammed:Testing123@cluster0-a0tew.mongodb.net/todolistDB" , {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true  }); // connect to mongodb server
+mongoose.connect('mongodb://localhost/todolistDB', {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true});
+//mongoose.connect("mongodb+srv://admin-hammed:Testing123@cluster0-a0tew.mongodb.net/todolistDB" , {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true  }); // connect to mongodb server
 const itemsSchema = new mongoose.Schema({title: String, list: String });
 const Item = mongoose.model("Item", itemsSchema);        //might need it                                                                 // follow the prototype. Note: Item is the model so whenever we want to
 // const item1 = new Item({ list: "Welcome to your todolist" });
@@ -74,6 +74,7 @@ app.post("/signup" , function(req , res){
   User.register({username: req.body.username }, req.body.password, function(err , user){
     if(err){
       console.log("Found err: " + err);
+      res.render("signup");
     }else{
       // console.log(req.isAuthenticated());   // testing
       // passport.authenticate('local');  // not doing anything
